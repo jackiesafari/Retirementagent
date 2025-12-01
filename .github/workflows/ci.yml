@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-eval:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Optional dev tools; ignore failures if not present
+          pip install ruff pytest || true
+
+      - name: Lint (ruff if available)
+        run: |
+          if command -v ruff >/dev/null 2>&1; then
+            ruff check agents tools evals main.py example_usage.py
+          else
+            echo "ruff not installed, skipping lint."
+          fi
+
+      - name: Run evaluation suite
+        run: |
+          python evals/run_evals.py
+
+
