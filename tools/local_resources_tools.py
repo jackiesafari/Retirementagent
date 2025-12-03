@@ -166,3 +166,5 @@ def find_senior_centers(city: str) -> str:
     """
     return get_local_resource("senior center", city)
 
+
+

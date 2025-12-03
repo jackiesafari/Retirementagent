@@ -1,13 +1,14 @@
 """Medicaid specialist agent."""
 
 from google.adk.agents import LlmAgent
-from google.adk.tools import FunctionTool
+from google.adk.tools import FunctionTool, google_search
 from google.genai import types
+
 
 from tools.medicaid_tools import get_medicaid_info, check_medicaid_eligibility
 
 
-def create_medicaid_agent(model: str = "gemini-2.0-flash-exp") -> LlmAgent:
+def create_medicaid_agent(model: str = "gemini-2.0-flash-lite") -> LlmAgent:
     """Create a Medicaid specialist agent.
     
     Args:
@@ -42,8 +43,7 @@ Safety:
 - Be careful with asset planning advice - recommend professional consultation"""
 
     tools = [
-        FunctionTool(get_medicaid_info),
-        FunctionTool(check_medicaid_eligibility),
+        google_search
     ]
 
     agent = LlmAgent(
@@ -59,4 +59,6 @@ Safety:
     )
 
     return agent
+
+
 

@@ -34,8 +34,8 @@ os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"  # Use API directly, not Verte
 # For our coordinator agent (defined under the `agents` package), this must be
 # "agents" to avoid app-name mismatch warnings.
 APP_NAME = "agents"
-# Use the same model you originally had working before the refactor so that
-# quota/plan behavior matches your previous setup.
+# Use a tools-capable Gemini model so that function calling (e.g., google_search)
+# works correctly. If you want to experiment with other models, update this value.
 DEFAULT_MODEL = "gemini-2.5-flash-lite"
 DEFAULT_USER_ID = "user_001"
 DEFAULT_SESSION_ID = "retirement_session_001"
@@ -79,6 +79,7 @@ class RetirementResourcesApp:
         app_name: str = APP_NAME,
         user_id: str = DEFAULT_USER_ID,
         session_id: Optional[str] = None,
+        medicaid_model: Optional[str] = None,
     ) -> None:
         _ensure_api_key()
 
@@ -88,7 +89,12 @@ class RetirementResourcesApp:
 
         # Core ADK components
         self.session_service = InMemorySessionService()
-        self.agent = create_coordinator_agent(model=model)
+        # Coordinator plus specialist agents. Medicaid can use its own model override
+        # (for example, a tools-capable or cheaper model) if desired.
+        self.agent = create_coordinator_agent(
+            model=model,
+            medicaid_model=medicaid_model,
+        )
         self.runner = Runner(
             agent=self.agent,
             app_name=self.app_name,
@@ -119,6 +125,23 @@ class RetirementResourcesApp:
             session_id=self.session_id,
             new_message=content,
         ):
+            # NOTE: The next block is ONLY for debug/observability so we can see
+            # when tools (for example, the Medicaid agent's `google_search` tool)
+            # are actually being called during a conversation.
+            # Lightweight debug logging for tool usage so we can see when
+            # tools like `google_search` are invoked by any agent.
+            tool_calls = getattr(event, "tool_calls", None)
+            if tool_calls:
+                try:
+                    for call in tool_calls:
+                        # Most ADK tool call objects expose `tool_name` and `args`
+                        tool_name = getattr(call, "tool_name", "unknown_tool")
+                        args = getattr(call, "args", {})
+                        print(f"[TOOL] {tool_name} called with args: {args}")
+                except Exception:
+                    # Defensive: if the structure is different, at least log something.
+                    print(f"[TOOL] tool call event: {tool_calls}")
+
             if event.is_final_response():
                 if event.content and event.content.parts:
                     final_response_text = event.content.parts[0].text

@@ -1,5 +1,7 @@
 """Coordinator agent that routes queries to specialized agents."""
 
+from typing import Optional
+
 from google.adk.agents import LlmAgent
 from google.adk.tools import AgentTool
 from google.genai import types
@@ -9,18 +11,22 @@ from .medicaid_agent import create_medicaid_agent
 from .local_resources_agent import create_local_resources_agent
 
 
-def create_coordinator_agent(model: str = "gemini-2.5-flash-lite") -> LlmAgent:
+def create_coordinator_agent(
+    model: str = "gemini-2.5-flash-lite",
+    medicaid_model: Optional[str] = None,
+) -> LlmAgent:
     """Create a coordinator agent that routes queries to specialized agents.
     
     Args:
-        model: The LLM model to use for the coordinator
+        model: The LLM model to use for the coordinator, Medicare, and local resources.
+        medicaid_model: Optional override model specifically for the Medicaid agent.
     
     Returns:
         Configured LlmAgent that coordinates between specialist agents
     """
     # Create specialist agents
     medicare_agent = create_medicare_agent(model)
-    medicaid_agent = create_medicaid_agent(model)
+    medicaid_agent = create_medicaid_agent(medicaid_model or model)
     local_resources_agent = create_local_resources_agent(model)
 
     instruction = """You are a compassionate intake and coordinator specialist for the Florida Retirement Resources Multi-Agent System.

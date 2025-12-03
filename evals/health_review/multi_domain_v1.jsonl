@@ -10,3 +10,5 @@
 {"id": "story_10_orlando_local_and_medicaid", "input": "I live in Orlando and use Medicare, but my money is getting tight. Are there Medicaid programs or local resources that can help with my healthcare costs?", "intent_type": "multi_domain", "expected_domains": ["medicaid", "local"], "profile_hints": {"city": "Orlando", "state": "FL"}, "must_contain": ["Orlando"], "must_not_contain": [], "quality_criteria": ["Mentions Medicaid savings or assistance programs", "Provides at least one local Orlando resource or contact"], "notes": "Cross of Medicaid and local supports for someone already on Medicare."}
 
 
+
+

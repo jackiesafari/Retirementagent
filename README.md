@@ -61,27 +61,83 @@ Main entry point with session management and interactive interface.
 
 ### Prerequisites
 
+**Backend:**
 - Python 3.12+
 - Google ADK installed
 - Virtual environment (recommended)
 
+**Frontend:**
+- Node.js 18+ and npm (or yarn)
+- Expo CLI (installed globally or via npx)
+
 ### Installation
+
+#### Backend Setup
 
 1. **Activate your virtual environment:**
    ```bash
    source venv/bin/activate
    ```
 
-2. **Install dependencies:**
+2. **Install Python dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Set up Google ADK credentials:**
    - Follow [Google ADK setup instructions](https://github.com/google/adk)
-   - Ensure your Google Cloud credentials are configured
+   - Set your `GOOGLE_API_KEY` environment variable:
+     ```bash
+     export GOOGLE_API_KEY='your-actual-key'
+     ```
+   - Get your key from: https://aistudio.google.com/app/apikey
+
+#### Frontend Setup
+
+1. **Navigate to the frontend directory:**
+   ```bash
+   cd my-app
+   ```
+
+2. **Install frontend dependencies:**
+   ```bash
+   npm install
+   ```
+   or
+   ```bash
+   yarn install
+   ```
 
 ### Running the Application
+
+#### Option 1: Web Interface (Recommended)
+
+This project includes a React Native/Expo frontend that provides a web-based chat interface.
+
+1. **Start the backend API server** (in the root directory):
+   ```bash
+   # Make sure you're in the project root with venv activated
+   uvicorn api_server_fixed:app --reload --port 8000
+   ```
+   The API will be available at `http://localhost:8000`
+
+2. **Start the frontend** (in a new terminal):
+   ```bash
+   cd my-app
+   npm start
+   ```
+   or
+   ```bash
+   cd my-app
+   yarn start
+   ```
+
+3. **Access the application:**
+   - Press `w` in the Expo terminal to open in web browser
+   - Or scan the QR code with Expo Go app on your mobile device
+   - The frontend will connect to the backend API at `http://localhost:8000/chat`
+
+#### Option 2: Interactive CLI Mode
 
 **Interactive Mode:**
 ```bash
@@ -154,10 +210,20 @@ print(response)
 
 Default model: `gemini-2.5-flash-lite`
 
-To use a different model:
+To use a different model for all agents:
 ```python
 app = RetirementResourcesApp(model="gemini-2.5-flash-lite")
 ```
+
+To use a different model specifically for the Medicaid agent (useful for tools like `google_search`):
+```python
+app = RetirementResourcesApp(
+    model="gemini-2.5-flash-lite",          # Coordinator and other agents
+    medicaid_model="gemini-2.0-flash-lite"  # Medicaid agent only
+)
+```
+
+**Note:** The Medicaid agent includes the `google_search` tool. If you encounter errors with function calling, try using a tools-capable model (e.g., `gemini-2.5-flash`) for the `medicaid_model` parameter.
 
 ### Temperature Settings
 
@@ -171,6 +237,7 @@ Agents use conservative temperature settings:
 ```
 Retirement agent framework/
 ├── main.py                 # Main application entry point
+├── api_server_fixed.py     # FastAPI server for frontend integration
 ├── requirements.txt        # Python dependencies
 ├── README.md              # This file
 ├── tools/                 # Tool functions
@@ -178,12 +245,19 @@ Retirement agent framework/
 │   ├── medicare_tools.py
 │   ├── medicaid_tools.py
 │   └── local_resources_tools.py
-└── agents/                # Agent definitions
-    ├── __init__.py
-    ├── medicare_agent.py
-    ├── medicaid_agent.py
-    ├── local_resources_agent.py
-    └── coordinator_agent.py
+├── agents/                # Agent definitions
+│   ├── __init__.py
+│   ├── medicare_agent.py
+│   ├── medicaid_agent.py
+│   ├── local_resources_agent.py
+│   └── coordinator_agent.py
+└── my-app/                # React Native/Expo frontend
+    ├── app/               # Expo Router app directory
+    │   ├── index.tsx      # Home screen
+    │   ├── chat.tsx       # Chat interface
+    │   └── _layout.tsx    # App layout
+    ├── package.json       # Frontend dependencies
+    └── app.json          # Expo configuration
 ```
 
 ## 🔄 Extending the System
